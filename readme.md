@@ -1,6 +1,5 @@
 # Flappy Bird AI using Python and NEAT
-This project is a replica of the famous Flappy Bird game developed using Python and Pygame. The twist is that you can choole to let an AI, trained using the NEAT (NeuroEvolution of Augmenting Topologies) algorithm, play the game instead of a human player.
-
+This project is a replica of the famous Flappy Bird game developed using Python and Pygame. The twist is that you can choose to let an AI, trained using the NEAT (NeuroEvolution of Augmenting Topologies) algorithm, play the game instead of a human player.
 ## Tech
 This project was built using:
 - Python 3.10+
@@ -12,10 +11,10 @@ Make sure you are in the root directory of the project.
 Run the following command to start the game: `python flappy_bird_game.py`
 
 ## Gameplay Controls
-**A key**: Start the AI training from generation 1.
-**Mouse left click** or **Space Bar**: Jump into manual gameplay for some Flappy Bird fun.
-**D Key**: Enter Debug mode
-**R Key**: Restart game upon losing
+- **A key**: Start the AI training from generation 1.
+- **Mouse left click** or **Space Bar**: Jump into manual gameplay for some Flappy Bird fun.
+- **D Key**: Enter Debug mode
+- **R Key**: Restart game upon losing
 
 ## AI Overview
 The AI is trained using the NEAT algorithm, which evolves neural networks to play the game. The algorithm mutates and adjusts the networks to improve fitness, which in this case is based on how far the bird travels and how long it survives.
