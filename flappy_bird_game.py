@@ -158,7 +158,7 @@ def draw_window(win, bird, pipes, base, score, game_started, game_active):
     font = pygame.font.SysFont("comicsans", 25)
 
     
-    score_label = font.render(f"Score: {score}", 1, (255, 255, 255))  # White color
+    score_label = font.render(f"Score: {score}", 1, (255, 255, 255)) 
     win.blit(score_label, (10, 10))
 
     
@@ -172,7 +172,7 @@ def draw_window(win, bird, pipes, base, score, game_started, game_active):
         win.blit(ai_label, (WIN_WIDTH / 2 - ai_label.get_width() / 2, WIN_HEIGHT / 3 + 10))
 
     if not game_active and game_started:
-        game_over_label = font.render("Game Over! Press R to restart", 1, (255, 0, 0))  # Red color
+        game_over_label = font.render("Game Over! Press R to restart", 1, (255, 0, 0))  
         win.blit(game_over_label, (WIN_WIDTH / 2 - game_over_label.get_width() / 2, WIN_HEIGHT / 3 - 50))
 
     pygame.display.update()
@@ -186,10 +186,10 @@ def main():
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
     clock = pygame.time.Clock()
 
-    # Flags for game state
-    game_started = False  # Game starts paused, waiting for first input
-    game_active = True    # Game continues unless there's a collision
-    score = 0             # Initial score is zero
+    
+    game_started = False  
+    game_active = True    
+    score = 0             
 
     run = True
 
@@ -199,34 +199,34 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
 
-            # Handle keypresses
+           
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_SPACE and not game_started:
-                    game_started = True  # Start the game on first key press
+                    game_started = True  
 
                 elif event.key == pygame.K_SPACE and game_active:
-                    bird.jump()  # Jump if the game is active
+                    bird.jump() 
 
                 elif event.key == pygame.K_a and not game_started:
                     # NEAT AI functionality placeholder
                     print("AI learning mode triggered (to be implemented)")
 
                 elif event.key == pygame.K_r and not game_active:
-                    # Reset the game state
+                    
                     bird = Bird(230, 350)
                     pipes = [Pipe(500)]
                     score = 0
-                    game_started = False  # Reset to the initial state
-                    game_active = True    # Allow restarting the game
+                    game_started = False  
+                    game_active = True   
 
-            # Handle mouse clicks
+            
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1 and not game_started:
-                    game_started = True  # Start the game on first mouse click
+                    game_started = True  
                 elif event.button == 1 and game_active:
-                    bird.jump()  # Jump if the game is active
+                    bird.jump()  
 
-        # Only move everything if the game has started and is active
+        
         if game_started and game_active:
             for pipe in pipes:
                 pipe.move()
@@ -234,16 +234,22 @@ def main():
             bird.move()
             base.move()
 
-            # Check for collisions with pipes or the base
+            
             for pipe in pipes:
                 if pipe.collide(bird):
-                    game_active = False  # Stop everything on collision
+                    game_active = False  
                     break
+                if not pipe.passed and pipe.x < bird.x:  # Pipe passed
+                    pipe.passed = True
+                    score += 1
+                    pipes.append(Pipe(500))
+            
+            pipes = [pipe for pipe in pipes if pipe.x > -pipe.PIPE_TOP.get_width()]
 
-            if bird.y + bird.img.get_height() >= base.y:  # Collision with base
+            if bird.y + bird.img.get_height() >= base.y:  
                 game_active = False
 
-        draw_window(win, bird, pipes, base, score, game_started, game_active)  # Always draw the window
+        draw_window(win, bird, pipes, base, score, game_started, game_active)  
 
     pygame.quit()
 
