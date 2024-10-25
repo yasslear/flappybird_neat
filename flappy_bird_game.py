@@ -42,14 +42,10 @@ class Bird:
 
     def move(self):
         self.tick_count += 1
-        # Improved physics calculation
         displacement = (self.vel * self.tick_count + 
                       0.5 * self.gravity * self.tick_count ** 2)
-
-        # Add velocity limits
         self.vel = max(min(self.vel + self.gravity, self.max_vel), self.min_vel)
         
-        # Smooth out movement
         displacement = max(min(displacement, self.max_vel), -self.max_vel)
         
         self.y += displacement
@@ -172,60 +168,49 @@ class GameStats:
         self.current_generation += 1
 
 def draw_window(win, birds, pipes, base, score_or_stats, game_started, game_active, generation, show_debug=False):
-    """
-    Enhanced window drawing function that handles both score integer and GameStats object
-    """
+
     # Handle both score integer and GameStats object
     if isinstance(score_or_stats, GameStats):
         stats = score_or_stats
     else:
-        # Create a GameStats object from the score integer
         stats = GameStats()
         stats.score = score_or_stats
         stats.current_generation = generation
 
-    # Draw background
     win.blit(BG_IMG, (0, 0))
 
-    # Draw pipes
     for pipe in pipes:
         pipe.draw(win)
 
-    # Draw base
     base.draw(win)
     
-    # Draw birds
     for bird in birds:
         bird.draw(win)
         
         # Debug visualization
         if show_debug and pipes:
             nearest_pipe = pipes[0]
-            # Draw line from bird to nearest pipe
             for bird in birds:
                 pygame.draw.line(win, (255, 0, 0), 
                             (bird.x + bird.img.get_width()/2, bird.y + bird.img.get_height()/2),
                             (nearest_pipe.x + nearest_pipe.PIPE_TOP.get_width()/2, nearest_pipe.height),
                             2)
-                # Draw line to bottom pipe
                 pygame.draw.line(win, (255, 0, 0),
                             (bird.x + bird.img.get_width()/2, bird.y + bird.img.get_height()/2),
                             (nearest_pipe.x + nearest_pipe.PIPE_BOTTOM.get_width()/2, nearest_pipe.bottom),
                             2)
 
-    # Initialize fonts
+    # fonts
     title_font = pygame.font.SysFont("comicsans", 40)
     stats_font = pygame.font.SysFont("comicsans", 25)
     small_font = pygame.font.SysFont("comicsans", 20)
 
-    # Draw statistics panel
     stats_panel_rect = pygame.Rect(10, 10, 200, 120)
     s = pygame.Surface((200, 120))
     s.set_alpha(128)
     s.fill((0, 0, 0))
     win.blit(s, (10, 10))
     
-    # Draw statistics
     stats_texts = [
         f"Score: {stats.score}",
         f"Generation: {stats.current_generation}",
@@ -238,13 +223,11 @@ def draw_window(win, birds, pipes, base, score_or_stats, game_started, game_acti
 
     # Game state messages
     if not game_started:
-        # Semi-transparent overlay for start screen
         s = pygame.Surface((WIN_WIDTH, WIN_HEIGHT))
         s.set_alpha(128)
         s.fill((0, 0, 0))
         win.blit(s, (0, 0))
         
-        # Start screen text
         start_label = stats_font.render("Left click or press space bar to play", True, (255, 255, 255))
         ai_label = stats_font.render("Press A to let NEAT AI play", True, (255, 255, 255))
         
@@ -252,12 +235,10 @@ def draw_window(win, birds, pipes, base, score_or_stats, game_started, game_acti
         win.blit(ai_label, (WIN_WIDTH/2 - ai_label.get_width()/2, WIN_HEIGHT/3 + 10))
 
     elif not game_active:
-        # Game Over screen
         game_over_label = stats_font.render("Game Over! Press R to restart", True, (255, 0, 0))
         win.blit(game_over_label, 
                 (WIN_WIDTH/2 - game_over_label.get_width()/2, WIN_HEIGHT/3 - 50))
 
-    # Update display
     pygame.display.update()
 
 # NEAT CONTROLS:
@@ -273,7 +254,7 @@ def evaluate_bird(genomes, config, win, stats):
 
     # Create birds and neural networks for each genome
     for genome_id, genome in genomes:
-        genome.fitness = 0  # Initialize fitness to 0
+        genome.fitness = 0  # Initialize fitness to 0 cuz otherwise type error comes up
         net = neat.nn.FeedForwardNetwork.create(genome, config)
         birds.append(Bird(230, 350))
         nets.append(net)
@@ -288,7 +269,6 @@ def evaluate_bird(genomes, config, win, stats):
     while len(birds) > 0:
         clock.tick(30)
         
-        # Handle quitting
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -303,9 +283,8 @@ def evaluate_bird(genomes, config, win, stats):
             if len(pipes) > 1 and birds[0].x > pipes[0].x + pipes[0].PIPE_TOP.get_width():
                 pipe_ind = 1
 
-        # Move each bird
         for x, bird in enumerate(birds):
-            # Add small reward for staying alive
+            # Add small reward for staying alive (tbc)
             ge[x].fitness += 0.1
             bird.move()
 
@@ -317,11 +296,9 @@ def evaluate_bird(genomes, config, win, stats):
             if output[0] > 0.5:
                 bird.jump()
 
-        # Move pipes and handle scoring
         for pipe in pipes:
             pipe.move()
 
-            # Check for collisions
             for bird_idx in range(len(birds) - 1, -1, -1):
                 if pipe.collide(birds[bird_idx]):
                     # Penalty for collision
@@ -330,7 +307,7 @@ def evaluate_bird(genomes, config, win, stats):
                     nets.pop(bird_idx)
                     ge.pop(bird_idx)
 
-            # Handle scoring and new pipe creation
+            # scoring and new pipe creation
             if not pipe.passed and pipe.x < birds[0].x if birds else False:
                 pipe.passed = True
                 score += 1
@@ -350,7 +327,6 @@ def evaluate_bird(genomes, config, win, stats):
                 nets.pop(bird_idx)
                 ge.pop(bird_idx)
         
-        # Draw game state
         draw_window(win, birds, pipes, base, score, True, True, stats)
 
         #stats.add_generation_stats(sum(g.fitness for g in ge) / len(ge), max(g.fitness for g in ge))
@@ -362,23 +338,18 @@ def get_inputs(bird, pipes):
         
     # Get the nearest pipe
     pipe = min(pipes, key=lambda p: p.x + p.PIPE_TOP.get_width() - bird.x 
-               if p.x + p.PIPE_TOP.get_width() > bird.x else float('inf'))
+               if p.x + p.PIPE_TOP.get_width() > bird.x else 20000)
     
     # Normalize all inputs between 0 and 1
     inputs = [
-        # Horizontal distance to next pipe (normalized by screen width)
         (pipe.x - bird.x) / WIN_WIDTH,
         
-        # Vertical distance to top pipe (normalized by screen height)
         (bird.y - pipe.height) / WIN_HEIGHT,
         
-        # Vertical distance to bottom pipe (normalized by screen height)
         (bird.y - (pipe.height + pipe.GAP)) / WIN_HEIGHT,
         
-        # Bird's vertical velocity (normalized)
         bird.vel / 10.0,
         
-        # Bird's height (normalized by screen height)
         bird.y / WIN_HEIGHT
     ]
     
@@ -386,7 +357,7 @@ def get_inputs(bird, pipes):
 
 def run(config_file):
     
-    # Load configuration
+    
     config = neat.Config(
         neat.DefaultGenome,
         neat.DefaultReproduction,
@@ -410,11 +381,6 @@ def run(config_file):
     
     # Run NEAT
     winner = pop.run(lambda genomes, config: evaluate_bird(genomes, config, win, pop.generation), 50)
-    
-    # Optional: Save the winner
-    with open('best_genome.pkl', 'wb') as f:
-        import pickle
-        pickle.dump(winner, f)
     
     return pop.generation
 
@@ -454,10 +420,10 @@ def main():
                 elif event.key == pygame.K_r and not game_active:
                     bird = Bird(230, 350)
                     pipes = [Pipe(500)]
-                    stats.score = 0  # Reset score using GameStats object
+                    stats.score = 0  
                     game_started = False
                     game_active = True
-                elif event.key == pygame.K_d:  # Add debug toggle
+                elif event.key == pygame.K_d:  # Add debug toggle, not working rn
                     show_debug = not show_debug
             if event.type == pygame.MOUSEBUTTONDOWN:
                 game_started = True
@@ -475,7 +441,7 @@ def main():
                     break
                 if not pipe.passed and pipe.x < bird.x:
                     pipe.passed = True
-                    stats.update_score(stats.score + 1)  # Update score using GameStats object
+                    stats.update_score(stats.score + 1)  
                     pipes.append(Pipe(500))
             
             pipes = [pipe for pipe in pipes if pipe.x > -pipe.PIPE_TOP.get_width()]
@@ -483,7 +449,7 @@ def main():
             if bird.y + bird.img.get_height() >= base.y:
                 game_active = False
 
-        # Update the draw_window call to include show_debug
+        
         draw_window(win, [bird], pipes, base, stats, game_started, game_active, generation)
 
     pygame.quit()
